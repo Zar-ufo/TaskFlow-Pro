@@ -1,0 +1,156 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum TaskStatus {
+  todo
+  in_progress
+  review
+  completed
+}
+
+enum Priority {
+  low
+  medium
+  high
+  urgent
+}
+
+enum MemberRole {
+  admin
+  member
+  viewer
+}
+
+enum PresenceStatus {
+  online
+  away
+  offline
+}
+
+enum ActivityType {
+  task_created
+  task_updated
+  task_completed
+  comment_added
+  member_joined
+}
+
+model User {
+  id        String          @id @default(cuid())
+  name      String
+  email     String          @unique
+  avatar    String
+  role      MemberRole      @default(member)
+  status    PresenceStatus  @default(online)
+  createdAt DateTime        @default(now())
+  updatedAt DateTime        @updatedAt
+
+  ownedWorkspaces Workspace[] @relation("WorkspaceOwner")
+  memberships WorkspaceMember[]
+  tasks       Task[]            @relation("TaskAssignee")
+  activities  Activity[]
+}
+
+model Workspace {
+  id          String            @id @default(cuid())
+  name        String
+  description String
+  color       String
+  createdAt   DateTime          @default(now())
+  updatedAt   DateTime          @updatedAt
+
+  ownerId     String
+  owner       User              @relation("WorkspaceOwner", fields: [ownerId], references: [id])
+
+  members     WorkspaceMember[]
+  categories  Category[]
+  tasks       Task[]
+  activities  Activity[]
+}
+
+model WorkspaceMember {
+  workspaceId String
+  userId      String
+  role        MemberRole @default(member)
+  createdAt   DateTime   @default(now())
+
+  workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([workspaceId, userId])
+}
+
+model Category {
+  id          String    @id @default(cuid())
+  name        String
+  color       String
+  icon        String
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  workspaceId String
+  workspace   Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+
+  tasks       Task[]
+
+  @@unique([workspaceId, name])
+}
+
+model Task {
+  id          String     @id @default(cuid())
+  title       String
+  description String     @default("")
+  status      TaskStatus @default(todo)
+  priority    Priority   @default(medium)
+  dueDate     DateTime?
+  tags        String[]   @default([])
+  progress    Int        @default(0)
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+
+  workspaceId String
+  workspace   Workspace  @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+
+  categoryId  String
+  category    Category   @relation(fields: [categoryId], references: [id])
+
+  assigneeId  String?
+  assignee    User?      @relation("TaskAssignee", fields: [assigneeId], references: [id])
+
+  subtasks    Subtask[]
+  activities  Activity[]
+}
+
+model Subtask {
+  id        String   @id @default(cuid())
+  title     String
+  completed Boolean  @default(false)
+
+  taskId    String
+  task      Task     @relation(fields: [taskId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Activity {
+  id          String       @id @default(cuid())
+  type        ActivityType
+  message     String
+  createdAt   DateTime     @default(now())
+
+  workspaceId String
+  workspace   Workspace    @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+
+  userId      String
+  user        User         @relation(fields: [userId], references: [id])
+
+  taskId      String?
+  task        Task?        @relation(fields: [taskId], references: [id], onDelete: SetNull)
+}

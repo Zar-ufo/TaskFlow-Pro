@@ -1,0 +1,22 @@
+import type { NextFunction, Request, Response } from 'express';
+
+export class HttpError extends Error {
+  status: number;
+  details?: unknown;
+
+  constructor(status: number, message: string, details?: unknown) {
+    super(message);
+    this.status = status;
+    this.details = details;
+  }
+}
+
+export function errorMiddleware(err: unknown, _req: Request, res: Response, _next: NextFunction) {
+  if (err instanceof HttpError) {
+    return res.status(err.status).json({ error: err.message, details: err.details ?? null });
+  }
+
+  // Prisma / other errors
+  const message = err instanceof Error ? err.message : 'Unknown error';
+  return res.status(500).json({ error: 'Internal Server Error', details: message });
+}
