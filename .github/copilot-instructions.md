@@ -6,7 +6,7 @@
 - Database: Postgres + Prisma (`server/prisma/schema.prisma`), local Postgres via `docker-compose.yml`
 
 ## Local dev (most common)
-- Start Postgres: `docker compose up -d` (DB on `localhost:55432`)
+- Start Postgres + API (Docker): `docker compose up -d --build` (DB on `localhost:55432`, API on `http://localhost:4000`)
 - Start API: `npm --prefix server run dev` (tsx watch, default `PORT=4000`)
 - Start web: `npm run dev` (Vite, default `http://localhost:5173`)
 - VS Code tasks exist: **Dev: API** and **Dev: Web**

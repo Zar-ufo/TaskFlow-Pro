@@ -11,5 +11,27 @@ services:
     volumes:
       - taskflow_pgdata:/var/lib/postgresql/data
 
+  api:
+    build:
+      context: ./server
+    container_name: taskflow-api
+    depends_on:
+      - postgres
+    environment:
+      PORT: "4000"
+      CORS_ORIGIN: "http://localhost:5173"
+      APP_BASE_URL: "http://localhost:5173"
+      JWT_SECRET: "dev_secret_change_me"
+      # NOTE: inside Docker, Postgres is reachable at host `postgres:5432`
+      DATABASE_URL: "postgresql://taskflow:taskflow@postgres:5432/taskflow?schema=public"
+      # Optional SMTP (leave unset to use [email:mock] logging)
+      # EMAIL_FROM: "no-reply@taskflow.local"
+      # SMTP_HOST: "smtp.yourdomain.com"
+      # SMTP_PORT: "587"
+      # SMTP_USER: "your_smtp_user"
+      # SMTP_PASS: "your_smtp_password"
+    ports:
+      - "4000:4000"
+
 volumes:
   taskflow_pgdata:
