@@ -39,7 +39,6 @@ export default function Sidebar() {
           {sidebarOpen && (
             <div className="animate-fade-in">
               <h1 className="font-bold text-lg gradient-text">TaskFlow</h1>
-              <p className="text-xs text-slate-400">Pro Edition</p>
             </div>
           )}
         </div>

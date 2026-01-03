@@ -14,6 +14,7 @@ import TaskModal from './TaskModal';
 export default function Header() {
   const {
     currentUser,
+    resendVerification,
     searchQuery,
     setSearchQuery,
     notifications,
@@ -25,6 +26,8 @@ export default function Header() {
   const [darkMode, setDarkMode] = useState(true);
   
   const unreadCount = notifications.filter((n) => !n.read).length;
+
+  if (!currentUser) return null;
 
   return (
     <>
@@ -42,7 +45,7 @@ export default function Header() {
               </div>
               <div>
                 <h2 className="font-semibold text-white">
-                  {currentWorkspace?.name || 'TaskFlow Pro'}
+                  {currentWorkspace?.name || 'TaskFlow'}
                 </h2>
                 <p className="text-xs text-slate-400">
                   {currentWorkspace?.members.length || 0} members
@@ -69,6 +72,14 @@ export default function Header() {
 
           {/* Right: Actions */}
           <div className="flex items-center gap-3">
+            {!currentUser.emailVerified && (
+              <button
+                onClick={() => void resendVerification()}
+                className="px-3 py-2 rounded-xl bg-warning-500/10 border border-warning-500/30 text-warning-200 text-sm hover:bg-warning-500/20 transition-colors"
+              >
+                Verify email (Resend)
+              </button>
+            )}
             {/* Filter button */}
             <button className="p-3 rounded-xl hover:bg-white/10 transition-colors text-slate-400 hover:text-white">
               <Filter className="w-5 h-5" />

@@ -7,6 +7,10 @@ import { tasksRouter } from './routes/tasks.js';
 import { categoriesRouter } from './routes/categories.js';
 import { workspacesRouter } from './routes/workspaces.js';
 import { activitiesRouter } from './routes/activities.js';
+import { authRouter } from './routes/auth.js';
+import { adminRouter } from './routes/admin.js';
+import { requireAuth } from './auth.js';
+import { bootstrapAdmin } from './bootstrap.js';
 
 const app = express();
 
@@ -23,13 +27,21 @@ app.get('/', (_req, res) => {
 });
 
 app.use('/api', healthRouter);
-app.use('/api', workspacesRouter);
-app.use('/api', categoriesRouter);
-app.use('/api', tasksRouter);
-app.use('/api', activitiesRouter);
+app.use('/api', authRouter);
+app.use('/api', adminRouter);
+app.use('/api', requireAuth, workspacesRouter);
+app.use('/api', requireAuth, categoriesRouter);
+app.use('/api', requireAuth, tasksRouter);
+app.use('/api', requireAuth, activitiesRouter);
 
 app.use(errorMiddleware);
 
-app.listen(env.port, () => {
-  console.log(`API listening on http://localhost:${env.port}`);
-});
+bootstrapAdmin()
+  .catch((e) => {
+    console.error('Failed to bootstrap admin:', e);
+  })
+  .finally(() => {
+    app.listen(env.port, () => {
+      console.log(`API listening on http://localhost:${env.port}`);
+    });
+  });

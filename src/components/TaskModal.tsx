@@ -34,6 +34,11 @@ export default function TaskModal({ onClose, editTask }: TaskModalProps) {
     e.preventDefault();
     if (!title.trim()) return;
 
+    if (!editTask) {
+      if (!currentWorkspace?.id) return;
+      if (!categoryId) return;
+    }
+
     if (editTask) {
       updateTask(editTask.id, {
         title,
@@ -55,7 +60,7 @@ export default function TaskModal({ onClose, editTask }: TaskModalProps) {
         tags,
         subtasks,
         progress: 0,
-        workspaceId: currentWorkspace?.id || 'ws-1',
+        workspaceId: currentWorkspace!.id,
       });
     }
 

@@ -4,7 +4,6 @@ export const zCreateWorkspace = z.object({
     name: z.string().min(1),
     description: z.string().default(''),
     color: z.string().min(1),
-    ownerId: zCuid,
 });
 export const zCreateCategory = z.object({
     workspaceId: zCuid,

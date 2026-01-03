@@ -2,6 +2,7 @@ import { ReactNode } from 'react';
 import Sidebar from './Sidebar';
 import Header from './Header';
 import NotificationPanel from './NotificationPanel';
+import OnboardingGuide from './OnboardingGuide';
 import { useStore } from '../store/useStore';
 
 interface LayoutProps {
@@ -13,6 +14,7 @@ export default function Layout({ children }: LayoutProps) {
 
   return (
     <div className="flex h-screen overflow-hidden">
+      <OnboardingGuide />
       {/* Sidebar */}
       <Sidebar />
 

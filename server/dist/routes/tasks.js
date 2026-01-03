@@ -19,16 +19,43 @@ function parseDueDate(input) {
     return d;
 }
 tasksRouter.get('/tasks', async (req, res) => {
+    const auth = req.auth;
     const workspaceId = req.query.workspaceId;
+    if (workspaceId) {
+        const member = await prisma.workspaceMember.findUnique({
+            where: { workspaceId_userId: { workspaceId, userId: auth.userId } },
+        });
+        if (!member) {
+            return res.json([]);
+        }
+    }
     const tasks = await prisma.task.findMany({
-        where: workspaceId ? { workspaceId } : undefined,
+        where: workspaceId
+            ? { workspaceId }
+            : {
+                workspace: {
+                    members: {
+                        some: { userId: auth.userId },
+                    },
+                },
+            },
         orderBy: { updatedAt: 'desc' },
         include: { subtasks: true },
     });
     res.json(tasks.map(mapTask));
 });
 tasksRouter.post('/tasks', async (req, res) => {
+    const auth = req.auth;
     const input = zCreateTask.parse(req.body);
+    const member = await prisma.workspaceMember.findUnique({
+        where: { workspaceId_userId: { workspaceId: input.workspaceId, userId: auth.userId } },
+    });
+    if (!member)
+        throw new HttpError(403, 'Not a workspace member');
+    const category = await prisma.category.findUnique({ where: { id: input.categoryId } });
+    if (!category || category.workspaceId !== input.workspaceId) {
+        throw new HttpError(400, 'Invalid categoryId for workspace');
+    }
     const task = await prisma.task.create({
         data: {
             workspaceId: input.workspaceId,
@@ -53,18 +80,24 @@ tasksRouter.post('/tasks', async (req, res) => {
             type: 'task_created',
             message: `Task created: "${task.title}"`,
             workspaceId: task.workspaceId,
-            userId: input.assigneeId ?? (await defaultUserId()),
+            userId: auth.userId,
             taskId: task.id,
         },
     });
     res.status(201).json(mapTask(task));
 });
 tasksRouter.patch('/tasks/:id', async (req, res) => {
+    const auth = req.auth;
     const id = req.params.id;
     const input = zUpdateTask.parse(req.body);
     const existing = await prisma.task.findUnique({ where: { id }, include: { subtasks: true } });
     if (!existing)
         throw new HttpError(404, 'Task not found');
+    const member = await prisma.workspaceMember.findUnique({
+        where: { workspaceId_userId: { workspaceId: existing.workspaceId, userId: auth.userId } },
+    });
+    if (!member)
+        throw new HttpError(403, 'Not a workspace member');
     const updated = await prisma.task.update({
         where: { id },
         data: {
@@ -86,7 +119,7 @@ tasksRouter.patch('/tasks/:id', async (req, res) => {
                 type: 'task_completed',
                 message: `Task completed: "${updated.title}"`,
                 workspaceId: updated.workspaceId,
-                userId: updated.assigneeId ?? (await defaultUserId()),
+                userId: auth.userId,
                 taskId: updated.id,
             },
         });
@@ -97,7 +130,7 @@ tasksRouter.patch('/tasks/:id', async (req, res) => {
                 type: 'task_updated',
                 message: `Task updated: "${updated.title}"`,
                 workspaceId: updated.workspaceId,
-                userId: updated.assigneeId ?? (await defaultUserId()),
+                userId: auth.userId,
                 taskId: updated.id,
             },
         });
@@ -105,16 +138,16 @@ tasksRouter.patch('/tasks/:id', async (req, res) => {
     res.json(mapTask(updated));
 });
 tasksRouter.delete('/tasks/:id', async (req, res) => {
+    const auth = req.auth;
     const id = req.params.id;
     const existing = await prisma.task.findUnique({ where: { id } });
     if (!existing)
         return res.status(204).send();
+    const member = await prisma.workspaceMember.findUnique({
+        where: { workspaceId_userId: { workspaceId: existing.workspaceId, userId: auth.userId } },
+    });
+    if (!member)
+        throw new HttpError(403, 'Not a workspace member');
     await prisma.task.delete({ where: { id } });
     res.status(204).send();
 });
-async function defaultUserId() {
-    const user = await prisma.user.findFirst({ orderBy: { createdAt: 'asc' } });
-    if (!user)
-        throw new HttpError(500, 'No users exist. Seed required.');
-    return user.id;
-}

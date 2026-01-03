@@ -38,6 +38,7 @@ export interface User {
   avatar: string;
   role: 'admin' | 'member' | 'viewer';
   status: 'online' | 'away' | 'offline';
+  emailVerified: boolean;
 }
 
 export interface Workspace {
