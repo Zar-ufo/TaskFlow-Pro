@@ -1,1 +1,13 @@
 node_modules
+
+# build outputs
+dist
+server/dist
+
+# env files (never commit secrets)
+.env
+.env.*
+server/.env
+
+# Vercel
+.vercel
