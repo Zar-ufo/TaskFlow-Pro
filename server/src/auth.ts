@@ -1,5 +1,4 @@
 import type { Request, Response, NextFunction } from 'express';
-import crypto from 'crypto';
 import jwt from 'jsonwebtoken';
 import bcrypt from 'bcryptjs';
 import { env } from './env.js';
@@ -28,14 +27,6 @@ export function verifyAccessToken(token: string): AuthPayload {
   } catch {
     throw new HttpError(401, 'Invalid or expired token');
   }
-}
-
-export function generateEmailVerificationToken(): string {
-  return crypto.randomBytes(32).toString('hex');
-}
-
-export function hashEmailVerificationToken(token: string): string {
-  return crypto.createHash('sha256').update(token).digest('hex');
 }
 
 export function requireAuth(req: Request, _res: Response, next: NextFunction) {

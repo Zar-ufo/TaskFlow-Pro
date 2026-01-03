@@ -9,12 +9,12 @@ adminRouter.get('/admin/users', requireAuth, requireAdmin, async (_req, res) => 
     orderBy: { createdAt: 'desc' },
     select: {
       id: true,
+      username: true,
       name: true,
       email: true,
       avatar: true,
       role: true,
       status: true,
-      emailVerified: true,
       createdAt: true,
     },
   });

@@ -20,15 +20,7 @@ export const env = {
 
   jwtSecret: required('JWT_SECRET'),
 
-  // Email (optional). If not set, emails are logged to console.
-  appBaseUrl: process.env.APP_BASE_URL ?? 'http://localhost:5173',
-  emailFrom: process.env.EMAIL_FROM ?? 'no-reply@taskflow.local',
-  smtpHost: optional('SMTP_HOST'),
-  smtpPort: Number(process.env.SMTP_PORT ?? '587'),
-  smtpUser: optional('SMTP_USER'),
-  smtpPass: optional('SMTP_PASS'),
-
-  // Admin bootstrap (defaults per request, but can be overridden)
-  adminEmail: process.env.ADMIN_EMAIL ?? 'abdullahzarif050@gmail.com',
-  adminPassword: process.env.ADMIN_PASSWORD ?? 'Zariffatiha11',
+  // Admin bootstrap (can be overridden)
+  adminUsername: process.env.ADMIN_USERNAME ?? 'admin',
+  adminPassword: process.env.ADMIN_PASSWORD ?? 'admin123',
 };

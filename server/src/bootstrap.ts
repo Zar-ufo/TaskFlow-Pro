@@ -3,8 +3,8 @@ import { env } from './env.js';
 import { hashPassword } from './auth.js';
 
 export async function bootstrapAdmin(): Promise<void> {
-  const email = env.adminEmail.toLowerCase();
-  const existing = await prisma.user.findUnique({ where: { email } });
+  const username = env.adminUsername.toLowerCase();
+  const existing = await prisma.user.findUnique({ where: { username } });
 
   const passwordHash = await hashPassword(env.adminPassword);
 
@@ -13,9 +13,9 @@ export async function bootstrapAdmin(): Promise<void> {
       where: { id: existing.id },
       data: {
         name: existing.name || 'Admin',
+        username,
         role: 'admin',
         status: 'online',
-        emailVerified: true,
         passwordHash,
       },
     });
@@ -25,11 +25,11 @@ export async function bootstrapAdmin(): Promise<void> {
   const admin = await prisma.user.create({
     data: {
       name: 'Admin',
-      email,
+      username,
+      email: null,
       avatar: '👤',
       role: 'admin',
       status: 'online',
-      emailVerified: true,
       passwordHash,
     },
   });
